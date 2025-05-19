@@ -33,7 +33,17 @@ start_screen()
 		read username
 		printf "Password: "
 		read password
+		printf "Reconfirm Password: "
+		read password2
 		clear
+
+		if [ $password == $password2 ] ; then
+			#do sign up logic
+			printf "Setting up account...\n"
+		else
+			show_ui "Passwords don't match! Press [1] to retry."
+			start_screen
+		fi
 	else
 		show_ui "Please select a valid option: log in [0] / sign up [1]"
 		start_screen
