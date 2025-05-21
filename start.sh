@@ -29,82 +29,85 @@ create_user()
 
 search_for_user()
 {
-	grep -s $1 Users.csv #To FIX
+	grep -s $1 Users.csv
 }
 
-patrat(){
-printf  "[]"
+loading()
+{
+
+	for i in {1..20}
+	do
+		printf  "[]"
+		sleep 0.15
+	done
 }
-loading(){
 
-for i in {1..12}
-do
-patrat
-sleep 0.15
-done
-}
-scrie_mare(){
-
-toilet -f  mono9 "$1"
-
+scrie_mare()
+{
+	toilet -f  mono9 "$1"
 }
 
 start_screen()
 {
 	login_option=$(whiptail --title "Database" \
-	--menu "Select option: " 15 50 3 \
+	--menu "Select option: "  15 50 3 \
 	 "1" "Login" \
 	 "2" "Sign In" \
-	 "3" "Exit" \
 	 3>&1 1>&2 2>&3)
+	exit_status=$?
+	if [ $exit_status -eq 1 ] ; then
+		toilet -f mono9 "Exiting"
+		loading
+		printf "\n"
+		clear
+		exit 0
+	fi
+
 	if [ $login_option -eq 1 ] ; then
-		id=$(whiptail --inputbox "Enter Username" 10 60 --title "Log In" 3>&1 1>&2 2>&3)
+		id=$(whiptail --inputbox "Enter Username" 10 60 --title "Log In" --nocancel 3>&1 1>&2 2>&3)
 
 		found=$(search_for_user $id)
-		echo $found
+		#echo $found
 
-		if [[ $found -eq 0 ]] ; then
+		if [ -z "$found"] ; then
 			whiptail --title "Log In" --msgbox "User not found in database." 7 0
 			start_screen
 		else
-			password=$(whiptail --title "Log In" --passwordbox "Enter password:" 10 60 3>&1 1>&2 2>&3)
+			password=$(whiptail --title "Log In" --passwordbox "Enter password:" --nocancel 10 60 3>&1 1>&2 2>&3)
 			clear
 			encrypted_pass=$(echo "$password" | sha256sum | sed 's/\s.*//g')
+			doc_pass=$(echo $found | sed 's/.*,.//g')
+
+			if [ $doc_pass = $encrypted_pass ] ; then
+				whiptail --title "Log In" --msgbox "Welcome $id!" 7 0
+				exit 0
+			else
+				whiptail --title "Log In" --msgbox "Incorrect password." 7 0
+				start_screen
+			fi
 		fi
 
 	elif [ $login_option -eq 2 ] ; then
-		email=$(whiptail --title "Sign In 0/4 Completed" --inputbox "Email:" 10 50 3>&1 1>&2 2>&3)
-		username=$(whiptail --title "Sign In 1/4 Completed" --inputbox "Username: " 10 50 3>&1 1>&2 2>&3)
-		password=$(whiptail --title "Sign in 2/4 Completed" --passwordbox "Password: " 10 50 3>&1 1>&2 2>&3)
-		password2=$(whiptail --title "Sign In 3/4 Completed" --passwordbox "Confirm password: " 10 50 3>&1 1>&2 2>&3)
+		email=$(whiptail --title "Sign In 0/4 Completed" --inputbox "Email:" --nocancel 10 50 3>&1 1>&2 2>&3)
+		username=$(whiptail --title "Sign In 1/4 Completed" --inputbox "Username: " --nocancel 10 50 3>&1 1>&2 2>&3)
+		password=$(whiptail --title "Sign in 2/4 Completed" --passwordbox "Password: " --nocancel 10 50 3>&1 1>&2 2>&3)
+		password2=$(whiptail --title "Sign In 3/4 Completed" --passwordbox "Confirm password: " --nocancel 10 50 3>&1 1>&2 2>&3)
 
 		clear
 
 		if [ "$password" = "$password2" ] ; then
-			#do sign up logic
-			sleep 2
-			printf "While you wait, here is the word of the day"
-
+			#TODO sign up logic
 			encrypted_pass=$(echo "$password" | sha256sum | sed 's/\s.*//g')
 
 			create_user $username $email $encrypted_pass
+
+			whiptail --title "Sign Up" --msgbox "Account Created!" 7 0
 			clear
-			scrie_mare "Account created!"
-#59
+			#scrie_mare "Account created!"
 		else
-			show_ui "Passwords don't match! Press [1] to retry."
-			sleep 1
+			whiptail --title "Sign Up" --msgbox "Passwords don't match." 7 0
 			start_screen
-			fi
-
-	elif [ $login_option -eq 3 ] ; then
-		scrie_mare "Exiting"
-		loading
-   	 	exit 0
-
-	else
-		show_ui "Please select a valid option: log in [0] / sign up [1]"
-		start_screen
+		fi
 	fi
 }
 
