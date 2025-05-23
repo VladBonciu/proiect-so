@@ -70,7 +70,6 @@ start_screen()
 		id=$(whiptail --inputbox "Enter Username / Email" 10 60 --title "Log In" --nocancel 3>&1 1>&2 2>&3)
 
 		found=$(search_for_user $id)
-		#echo $found
 
 		if [ -z "$found"] ; then
 			whiptail --title "Log In" --msgbox "User not found in database." 7 0
@@ -122,7 +121,41 @@ home()
 	"4" "See User Information" \
 	"5" "Create User Report" \
 	3>&1 1>&2 2>&3)
-	exit 0
+	exit_status=$?
+	if [ $exit_status -eq 1 ] ; then
+		toilet -f mono9 "Exiting"
+		loading
+		printf "\n"
+		clear
+		exit 0
+	fi
+
+	case home_option in
+	1)
+		return #creat a file/ folder mentioned in a user input box (first input file/folder, next input field for name
+	;;
+
+	2)
+		return #delete a file/ folder mentioned in a user input box
+	;;
+
+	3)
+		return #delete a file/ folder mentioned in a user input box
+	;;
+
+	4)
+		return #see user info (uid, username, email)
+	;;
+
+	5)
+		return #create user report
+	;;
+
+	*)
+		printf "Invalid Command!\n"
+	;;
+	esac
+
 }
 
 clear
