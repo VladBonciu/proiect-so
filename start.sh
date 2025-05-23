@@ -67,7 +67,7 @@ start_screen()
 	fi
 
 	if [ $login_option -eq 1 ] ; then
-		id=$(whiptail --inputbox "Enter Username / Email" 10 60 --title "Log In" --nocancel 3>&1 1>&2 2>&3)
+		id=$(whiptail --inputbox "Enter Username " 10 60 --title "Log In" --nocancel 3>&1 1>&2 2>&3)
 
 		found=$(search_for_user $id)
 
@@ -82,6 +82,7 @@ start_screen()
 
 			if [ $doc_pass = $encrypted_pass ] ; then
 				whiptail --title "Log In" --msgbox "Welcome $id!" 7 0
+				emaill=$(grep -w $id Users.csv | grep -o '[^[:space:]]*@[^[:,:]]*')
 				ident=$(grep -w $id Users.csv | sed 's/,.*//g')
                                 cd folders/Home-$ident
 				home
@@ -96,7 +97,7 @@ start_screen()
 		username=$(whiptail --title "Sign In 1/4 Completed" --inputbox "Username: " --nocancel 10 50 3>&1 1>&2 2>&3)
 		password=$(whiptail --title "Sign in 2/4 Completed" --passwordbox "Password: " --nocancel 10 50 3>&1 1>&2 2>&3)
 		password2=$(whiptail --title "Sign In 3/4 Completed" --passwordbox "Confirm password: " --nocancel 10 50 3>&1 1>&2 2>&3)
-
+		emaill=$email
 		clear
 
 		if [ "$password" = "$password2" ] ; then
@@ -105,18 +106,17 @@ start_screen()
 
 			create_user $username $email $encrypted_pass
 
-			 ident=$(grep -w $username Users.csv | sed 's/,.*//g')
+			ident=$(grep -w $username Users.csv | sed 's/,.*//g')
 
                         cd folders
                         mkdir "Home-$ident"
+			cd ..
 
                         loading
                         clear
 
                         whiptail --title "Sign Up" --msgbox "Account Created! Your user id is: $ident" 7 0
-                        cd Home-$ident
-                        clear
-			home
+			start_screen
 		else
 			whiptail --title "Sign Up" --msgbox "Passwords don't match." 7 0
 			start_screen
@@ -207,8 +207,6 @@ home()
 
 	5)
 		cd ../..
-                ident=$(grep -w $id Users.csv | sed 's/,.*//g')
-                $emaill=$(grep -w $id Users.csv | sed -E 's/^([^,]*,){3}([^,]*),.*/\2/')
                 whiptail --title "User Information" --msgbox "User ID: $ident  \n Username: $id \n Email: $emaill " 30 50
                 cd folders/Home-$ident
                 return #see user info (uid, username, email)
