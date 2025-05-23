@@ -23,13 +23,14 @@ show_ui()
 
 create_user()
 {
-        printf "$1, $2, $3\n" >> "Users.csv"
-        echo "User adaugat"
+        uid=$(cat Users.csv | wc -l)
+        printf "$uid, $1, $2, $3\n" >> "Users.csv"
+	echo "User adaugat"
 }
 
 search_for_user()
 {
-	grep -s $1 Users.csv
+	grep -s -w $1 Users.csv | sed 's/.*\n//g'
 }
 
 loading()
@@ -50,11 +51,13 @@ scrie_mare()
 start_screen()
 {
 	login_option=$(whiptail --title "Database" \
-	--menu "Select option: "  15 50 3 \
-	 "1" "Login" \
-	 "2" "Sign In" \
+	--menu "Select option: " --cancel-button "Exit" --notags 15 50 3 \
+	 "1" " Log In" \
+	 "2" " Sign In " \
 	 3>&1 1>&2 2>&3)
+
 	exit_status=$?
+
 	if [ $exit_status -eq 1 ] ; then
 		toilet -f mono9 "Exiting"
 		loading
@@ -64,7 +67,7 @@ start_screen()
 	fi
 
 	if [ $login_option -eq 1 ] ; then
-		id=$(whiptail --inputbox "Enter Username" 10 60 --title "Log In" --nocancel 3>&1 1>&2 2>&3)
+		id=$(whiptail --inputbox "Enter Username / Email" 10 60 --title "Log In" --nocancel 3>&1 1>&2 2>&3)
 
 		found=$(search_for_user $id)
 		#echo $found
@@ -80,7 +83,7 @@ start_screen()
 
 			if [ $doc_pass = $encrypted_pass ] ; then
 				whiptail --title "Log In" --msgbox "Welcome $id!" 7 0
-				exit 0
+				home
 			else
 				whiptail --title "Log In" --msgbox "Incorrect password." 7 0
 				start_screen
@@ -103,12 +106,23 @@ start_screen()
 
 			whiptail --title "Sign Up" --msgbox "Account Created!" 7 0
 			clear
-			#scrie_mare "Account created!"
 		else
 			whiptail --title "Sign Up" --msgbox "Passwords don't match." 7 0
 			start_screen
 		fi
 	fi
+}
+
+home()
+{
+	home_option=$(whiptail --title "Home" --menu "Select option:"  --cancel-button "Exit" --notags 30 30 10 \
+	"1" "Open File/Folder" \
+	"2" "Create File/Folder" \
+	"3" "Delete File/Folder" \
+	"4" "See User Information" \
+	"5" "Create User Report" \
+	3>&1 1>&2 2>&3)
+	exit 0
 }
 
 clear
