@@ -82,6 +82,8 @@ start_screen()
 
 			if [ $doc_pass = $encrypted_pass ] ; then
 				whiptail --title "Log In" --msgbox "Welcome $id!" 7 0
+				ident=$(grep -w $id Users.csv | sed 's/,.*//g')
+                                cd folders/Home-$ident
 				home
 			else
 				whiptail --title "Log In" --msgbox "Incorrect password." 7 0
@@ -103,8 +105,18 @@ start_screen()
 
 			create_user $username $email $encrypted_pass
 
-			whiptail --title "Sign Up" --msgbox "Account Created!" 7 0
-			clear
+			 ident=$(grep -w $username Users.csv | sed 's/,.*//g')
+
+                        cd folders
+                        mkdir "Home-$ident"
+
+                        loading
+                        clear
+
+                        whiptail --title "Sign Up" --msgbox "Account Created! Your user id is: $ident" 7 0
+                        cd Home-$ident
+                        clear
+			home
 		else
 			whiptail --title "Sign Up" --msgbox "Passwords don't match." 7 0
 			start_screen
@@ -114,48 +126,79 @@ start_screen()
 
 home()
 {
-	home_option=$(whiptail --title "Home" --menu "Select option:"  --cancel-button "Exit" --notags 30 30 10 \
+	dir=$(pwd | sed 's/.*\//...\//g')
+	home_option=$(whiptail --title "$dir" --menu "Select option:"  --cancel-button "Log Out" --notags 30 30 10 \
 	"1" "Open File/Folder" \
-	"2" "Create File/Folder" \
-	"3" "Delete File/Folder" \
-	"4" "See User Information" \
-	"5" "Create User Report" \
+        "2" "Create File/Folder" \
+        "3" "Delete File/Folder" \
+        "4" "List Items in Directory" \
+        "5" "See User Information" \
+        "6" "Create User Report" \
 	3>&1 1>&2 2>&3)
 	exit_status=$?
 	if [ $exit_status -eq 1 ] ; then
-		toilet -f mono9 "Exiting"
-		loading
-		printf "\n"
-		clear
-		exit 0
+		start_screen
 	fi
 
 	case $home_option in
 	1)
-		file_folder_option=$(whiptail --title "Create File / Folder" --yesno "Would you like to create a file or a folder?" \
-		--yes-button "File" \
-		--no-button "Folder" \
-		--nocancel 10 50 3>&1 1>&2 2>&3)
-		exit_status=$?
-		cd test
-		if [ $exit_status -eq 0 ] ; then
-			file_name=$(whiptail --title "Create File" --inputbox "What would you like to name the file? (Including file format)" \
-			--nocancel 10 50 3>&1 1>&2 2>&3 | sed 's/ /_/g')
-			touch $file_name
+		file_folder_option=$(whiptail --title "Open File / Folder" --yesno "Would you like to open a file or a folder?" \
+                --yes-button "File" \
+                --no-button "Folder" \
+                --nocancel 10 50 3>&1 1>&2 2>&3)
+                exit_status=$?
+                if [ $exit_status -eq 0 ] ; then
+                        file_name=$(whiptail --title "Create File" --inputbox "What is the name of the file?" \
+                        --nocancel 10 50 3>&1 1>&2 2>&3 | sed 's/ /_/g')
+                        nano $file_name && home || whiptail --title "Error" --msgbox "File not found!" 7 0 3>&1 1>&2 2>&3
+			home
 		else
-			folder_name=$(whiptail --title "Create Folder" --inputbox "What would you like to name the folder?" \
-			--nocancel 10 50 3>&1 1>&2 2>&3 | sed 's/ /_/g')
-			mkdir $folder_name
+                        folder_name=$(whiptail --title "Create Folder" --inputbox "What is the name of the folder?" \
+                        --nocancel 10 50 3>&1 1>&2 2>&3 | sed 's/ /_/g')
+                        cd $folder_name || whiptail --title "Error" --msgbox "Folder not found!" 7 0 3>&1 1>&2 2>&3
+                	home
 		fi
-		#create a file/ folder mentioned in a user input box (first input file/folder, next input field for name
+		#open a file/ folder mentioned in a user input box (first input file/folder, next input field for name
 	;;
 
 	2)
-		return #delete a file/ folder mentioned in a user input box
+		file_folder_option=$(whiptail --title "Create File / Folder" --yesno "Would you like to create a file or a folder?" \
+                --yes-button "File" \
+                --no-button "Folder" \
+                --nocancel 10 50 3>&1 1>&2 2>&3)
+                exit_status=$?
+                if [ $exit_status -eq 0 ] ; then
+                        file_name=$(whiptail --title "Create File" --inputbox "What would you like to name the file? (Including extension)" \
+                        --nocancel 10 50 3>&1 1>&2 2>&3 | sed 's/ /_/g')
+                        touch $file_name
+			home
+                else
+                        folder_name=$(whiptail --title "Create Folder" --inputbox "What would you like to name the folder?" \
+                        --nocancel 10 50 3>&1 1>&2 2>&3 | sed 's/ /_/g')
+                        mkdir $folder_name
+                	home
+		fi
+                #create a file/ folder mentioned in a user input box (first input file/folder, next input field for name
 	;;
 
 	3)
-		return #delete a file/ folder mentioned in a user input box
+		file_folder_option=$(whiptail --title "Open File / Folder" --yesno "Would you like to open a file or a folder?" \
+                --yes-button "File" \
+                --no-button "Folder" \
+                --nocancel 10 50 3>&1 1>&2 2>&3)
+                exit_status=$?
+                if [ $exit_status -eq 0 ] ; then
+                        file_name=$(whiptail --title "Create File" --inputbox "What is the name of the file?" \
+                        --nocancel 10 50 3>&1 1>&2 2>&3 | sed 's/ /_/g')
+                        rm $file_name && home || whiptail --title "Error" --msgbox "File not found!" 7 0 3>&1 1>&2 2>&3
+			home
+                else
+                        folder_name=$(whiptail --title "Create Folder" --inputbox "What is the name of the folder?" \
+                        --nocancel 10 50 3>&1 1>&2 2>&3 | sed 's/ /_/g')
+                        rm $folder_name && home || whiptail --title "Error" --msgbox "Folder not found!" 7 0 3>&1 1>&2 2>&3
+                        home
+                fi
+		#delete a file/ folder mentioned in a user input box
 	;;
 
 	4)
@@ -163,7 +206,16 @@ home()
 	;;
 
 	5)
-		return #create user report
+		cd ../..
+                ident=$(grep -w $id Users.csv | sed 's/,.*//g')
+                $emaill=$(grep -w $id Users.csv | sed -E 's/^([^,]*,){3}([^,]*),.*/\2/')
+                whiptail --title "User Information" --msgbox "User ID: $ident  \n Username: $id \n Email: $emaill " 30 50
+                cd folders/Home-$ident
+                return #see user info (uid, username, email)
+	;;
+
+	6)
+		return
 	;;
 
 	*)
