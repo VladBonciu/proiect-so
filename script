@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "export PROJECT_PATH=\"$(pwd)\"" >> /.bashrc
+
+echo "alias database=\"\$PROJECT_PATH/initialisation\"" >> ~/.bashrc
+
+echo "source ~/.bashrc"
