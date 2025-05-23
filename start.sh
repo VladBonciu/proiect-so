@@ -45,7 +45,7 @@ loading()
 
 scrie_mare()
 {
-	toilet -f  mono9 "$1"
+	toilet -f mono9 "$1"
 }
 
 start_screen()
@@ -130,9 +130,24 @@ home()
 		exit 0
 	fi
 
-	case home_option in
+	case $home_option in
 	1)
-		return #creat a file/ folder mentioned in a user input box (first input file/folder, next input field for name
+		file_folder_option=$(whiptail --title "Create File / Folder" --yesno "Would you like to create a file or a folder?" \
+		--yes-button "File" \
+		--no-button "Folder" \
+		--nocancel 10 50 3>&1 1>&2 2>&3)
+		exit_status=$?
+		cd test
+		if [ $exit_status -eq 0 ] ; then
+			file_name=$(whiptail --title "Create File" --inputbox "What would you like to name the file? (Including file format)" \
+			--nocancel 10 50 3>&1 1>&2 2>&3 | sed 's/ /_/g')
+			touch $file_name
+		else
+			folder_name=$(whiptail --title "Create Folder" --inputbox "What would you like to name the folder?" \
+			--nocancel 10 50 3>&1 1>&2 2>&3 | sed 's/ /_/g')
+			mkdir $folder_name
+		fi
+		#create a file/ folder mentioned in a user input box (first input file/folder, next input field for name
 	;;
 
 	2)
