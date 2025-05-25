@@ -67,7 +67,10 @@ start_screen()
 	fi
 
 	if [ $login_option -eq 1 ] ; then
+<<<<<<< HEAD
 		unset id
+=======
+>>>>>>> refs/remotes/origin/main
 		id=$(whiptail --inputbox "Enter Username " 10 60 --title "Log In" --nocancel 3>&1 1>&2 2>&3)
 
 		found=$(search_for_user $id)
@@ -116,9 +119,13 @@ start_screen()
 
                         cd folders
                         mkdir "Home-$ident"
+<<<<<<< HEAD
 			cd "Home-$ident"
 			touch ".jrn-$ident"
 			cd ../..
+=======
+			cd ..
+>>>>>>> refs/remotes/origin/main
 
                         loading
                         clear
@@ -223,6 +230,7 @@ home()
 	;;
 
 	5)
+<<<<<<< HEAD
 		dir=$(pwd) #save current directory location to use after extracting info
 		whiptail --title "User Information" --msgbox "$dir \n$initial_dir " 20 50
 		cd $initial_dir #go to initial location of the script to extract user info from Users.csv
@@ -238,6 +246,12 @@ home()
 		home
 
 		return #see user info (uid, username, email)
+=======
+		cd ../..
+                whiptail --title "User Information" --msgbox "User ID: $ident  \n Username: $id \n Email: $emaill " 30 50
+                cd folders/Home-$ident
+                return #see user info (uid, username, email)
+>>>>>>> refs/remotes/origin/main
 	;;
 
 	6)	cd
