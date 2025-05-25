@@ -1,7 +1,7 @@
 #!/bin/bash
 
-export NEWT_COLORS='
-root=white,black
+theme_variants=(\
+'root=white,black
 title=white,black
 border=white,black
 window=white,black
@@ -11,8 +11,30 @@ textbox=white,black
 acttextbox=white,black
 listbox=white,black
 compactbutton=white,black
-entry=black,white
-'
+entry=black,white' \
+'root=black,gray
+title=black,gray
+border=black,gray
+window=black,gray
+button=white,gray
+label=white,gray
+textbox=white,black
+acttextbox=black,white
+listbox=black,white
+compactbutton=black,white
+entry=white,black' \
+'root=green,magenta
+title=red,brown
+border=pink,gray
+window=red,brown
+button=blue,yellow
+label=white,blue
+textbox=red,gray
+acttextbox=blue,gray
+listbox=red,green
+compactbutton=blue,white
+entry=white,red')
+export NEWT_COLORS=${theme_variants[0]}
 
 show_ui()
 {
@@ -143,6 +165,7 @@ home()
         "4" "List Items in Directory" \
         "5" "See User Information" \
         "6" "Create User Report" \
+	"7" "Change Theme" \
 	3>&1 1>&2 2>&3)
 	exit_status=$?
 	if [ $exit_status -eq 1 ] ; then
@@ -198,18 +221,18 @@ home()
 	;;
 
 	3)
-		file_folder_option=$(whiptail --title "Open File / Folder" --yesno "Would you like to open a file or a folder?" \
+		file_folder_option=$(whiptail --title "Delete File / Folder" --yesno "Would you like to open a file or a folder?" \
                 --yes-button "File" \
                 --no-button "Folder" \
                 --nocancel 10 50 3>&1 1>&2 2>&3)
                 exit_status=$?
                 if [ $exit_status -eq 0 ] ; then
-                        file_name=$(whiptail --title "Create File" --inputbox "What is the name of the file?" \
+                        file_name=$(whiptail --title "Delete File" --inputbox "What is the name of the file?" \
                         --nocancel 10 50 3>&1 1>&2 2>&3 | sed 's/ /_/g')
                         rm $file_name && home || whiptail --title "Error" --msgbox "File not found!" 7 0 3>&1 1>&2 2>&3
 			home
                 else
-                        folder_name=$(whiptail --title "Create Folder" --inputbox "What is the name of the folder?" \
+                        folder_name=$(whiptail --title "Delete Folder" --inputbox "What is the name of the folder?" \
                         --nocancel 10 50 3>&1 1>&2 2>&3 | sed 's/ /_/g')
                         rm $folder_name && home || whiptail --title "Error" --msgbox "Folder not found!" 7 0 3>&1 1>&2 2>&3
                         home
@@ -219,7 +242,7 @@ home()
 
 	4)	#!!!!de schimbat fisierele din al doilea cd dupa ce se face directoru cu proiectu
 		ls_out=$(ls -l | sed 's/ .* / /g' | sed 's/.\{9\} / /' | sed 's/-/f/g')
-		whiptail --title "Fișiere în directorul curent:" --msgbox "$ls_out" --scrolltext 20 60
+		whiptail --title "Files in current directory:" --msgbox "$ls_out" --scrolltext 20 60
 		home
 		#see current files/folders in current directory
 	;;
@@ -239,16 +262,47 @@ home()
 		cd $dir #go back to intial location
 		home
 
-		return #see user info (uid, username, email)
+		#see user info (uid, username, email)
 	;;
 
-	6)	cd
-		cd proiect1/proiect-so/folders/Home-$ident
+	6)
+		dir=$(pwd) #save current directory location to use after extracting info
+		cd $initial_dir
 		whiptail --title "Log In Journal" --textbox ".jrn-$ident" 20 50
-		cd 
-		cd proiect1/proiect-so
+		#TODO REPORT
+		cd $dir
 		home
-		return
+	;;
+
+	7)
+		theme_option=$(whiptail --title "Theme" --menu "Select a theme:"  --nocancel --notags 30 30 10 \
+        	"1" "Classic" \
+	        "2" "Old School" \
+	        "3" "Acid Rain" \
+	        3>&1 1>&2 2>&3)
+
+		case $theme_option in
+		1)
+			NEWT_COLORS=${theme_variants[0]}
+			home
+		;;
+
+                2)
+			NEWT_COLORS='${theme_variants[1]}' #nu stiu dece varianta din mijloc necesita ghilimele extra
+                	home
+		;;
+
+               	3)
+			NEWT_COLORS=${theme_variants[@]}
+                	home
+		;;
+
+		*)
+			home
+                ;;
+
+		esac
+
 	;;
 
 	*)
