@@ -67,7 +67,8 @@ start_screen()
 	fi
 
 	if [ $login_option -eq 1 ] ; then
-		id=$(whiptail --inputbox "Enter Username / Email" 10 60 --title "Log In" --nocancel 3>&1 1>&2 2>&3)
+		unset id
+		id=$(whiptail --inputbox "Enter Username " 10 60 --title "Log In" --nocancel 3>&1 1>&2 2>&3)
 
 		found=$(search_for_user $id)
 
@@ -82,8 +83,14 @@ start_screen()
 
 			if [ $doc_pass = $encrypted_pass ] ; then
 				whiptail --title "Log In" --msgbox "Welcome $id!" 7 0
+				emaill=$(grep -w $id Users.csv | grep -o '[^[:space:]]*@[^[:,:]]*')
 				ident=$(grep -w $id Users.csv | sed 's/,.*//g')
-                                cd folders/Home-$ident
+				cd folders/Home-$ident
+				time=$(date +"%Y-%m-%d %H:%M:%S")
+				echo "Logged in: $time " >> ".jrn-$ident"
+				cd ../..
+				echo "$id logged in: $time " >> "admin-jrn.txt"
+				cd folders/Home-$ident
 				home
 			else
 				whiptail --title "Log In" --msgbox "Incorrect password." 7 0
@@ -96,7 +103,7 @@ start_screen()
 		username=$(whiptail --title "Sign In 1/4 Completed" --inputbox "Username: " --nocancel 10 50 3>&1 1>&2 2>&3)
 		password=$(whiptail --title "Sign in 2/4 Completed" --passwordbox "Password: " --nocancel 10 50 3>&1 1>&2 2>&3)
 		password2=$(whiptail --title "Sign In 3/4 Completed" --passwordbox "Confirm password: " --nocancel 10 50 3>&1 1>&2 2>&3)
-
+		emaill=$email
 		clear
 
 		if [ "$password" = "$password2" ] ; then
@@ -105,18 +112,19 @@ start_screen()
 
 			create_user $username $email $encrypted_pass
 
-			 ident=$(grep -w $username Users.csv | sed 's/,.*//g')
+			ident=$(grep -w $username Users.csv | sed 's/,.*//g')
 
                         cd folders
                         mkdir "Home-$ident"
+			cd "Home-$ident"
+			touch ".jrn-$ident"
+			cd ../..
 
                         loading
                         clear
 
                         whiptail --title "Sign Up" --msgbox "Account Created! Your user id is: $ident" 7 0
-                        cd Home-$ident
-                        clear
-			home
+			start_screen
 		else
 			whiptail --title "Sign Up" --msgbox "Passwords don't match." 7 0
 			start_screen
@@ -137,6 +145,13 @@ home()
 	3>&1 1>&2 2>&3)
 	exit_status=$?
 	if [ $exit_status -eq 1 ] ; then
+		cd $initial_dir
+		cd folders/Home-$ident
+                                time=$(date +"%Y-%m-%d %H:%M:%S")
+                                echo "Logged out: $time " >> ".jrn-$ident"
+				cd ../..
+				echo "$id logged out: $time " >> "admin-jrn.txt"
+
 		start_screen
 	fi
 
@@ -201,20 +216,36 @@ home()
 		#delete a file/ folder mentioned in a user input box
 	;;
 
-	4)
-		return #see user info (uid, username, email)
+	4)	#!!!!de schimbat fisierele din al doilea cd dupa ce se face directoru cu proiectu
+		ls | whiptail --title "Fișiere în directorul curent:" --msgbox "$(cat)" --scrolltext 20 60
+		home
+		#see current files/folders in current directory
 	;;
 
 	5)
-		cd ../..
-                ident=$(grep -w $id Users.csv | sed 's/,.*//g')
-                $emaill=$(grep -w $id Users.csv | sed -E 's/^([^,]*,){3}([^,]*),.*/\2/')
-                whiptail --title "User Information" --msgbox "User ID: $ident  \n Username: $id \n Email: $emaill " 30 50
-                cd folders/Home-$ident
-                return #see user info (uid, username, email)
+		dir=$(pwd) #save current directory location to use after extracting info
+		whiptail --title "User Information" --msgbox "$dir \n$initial_dir " 20 50
+		cd $initial_dir #go to initial location of the script to extract user info from Users.csv
+                etc=$(grep -w "$id" Users.csv)
+		touch temp.txt
+		echo "$etc" >> temp.txt
+		emaill=$(grep -o '\S*@\S*' temp.txt)
+		emaill=${emaill::-1}
+		whiptail --title "User Information" --msgbox " User ID: $ident  \n Username: $id \n Email: $emaill " 20 50
+		rm temp.txt
+
+		cd $dir #go back to intial location
+		home
+
+		return #see user info (uid, username, email)
 	;;
 
-	6)
+	6)	cd
+		cd proiect1/proiect-so/folders/Home-$ident
+		whiptail --title "Log In Journal" --textbox ".jrn-$ident" 20 50
+		cd 
+		cd proiect1/proiect-so
+		home
 		return
 	;;
 
@@ -226,5 +257,5 @@ home()
 }
 
 clear
+initial_dir=$(pwd) #save initial location in the project to access later
 start_screen
-
