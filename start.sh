@@ -50,6 +50,7 @@ scrie_mare()
 
 start_screen()
 {
+	cd $initial_dir
 	login_option=$(whiptail --title "Database" \
 	--menu "Select option: " --cancel-button "Exit" --notags 15 50 3 \
 	 "1" " Log In" \
@@ -67,10 +68,7 @@ start_screen()
 	fi
 
 	if [ $login_option -eq 1 ] ; then
-<<<<<<< HEAD
 		unset id
-=======
->>>>>>> refs/remotes/origin/main
 		id=$(whiptail --inputbox "Enter Username " 10 60 --title "Log In" --nocancel 3>&1 1>&2 2>&3)
 
 		found=$(search_for_user $id)
@@ -119,13 +117,9 @@ start_screen()
 
                         cd folders
                         mkdir "Home-$ident"
-<<<<<<< HEAD
 			cd "Home-$ident"
 			touch ".jrn-$ident"
 			cd ../..
-=======
-			cd ..
->>>>>>> refs/remotes/origin/main
 
                         loading
                         clear
@@ -224,15 +218,15 @@ home()
 	;;
 
 	4)	#!!!!de schimbat fisierele din al doilea cd dupa ce se face directoru cu proiectu
-		ls | whiptail --title "Fișiere în directorul curent:" --msgbox "$(cat)" --scrolltext 20 60
+		ls_out=$(ls -l | sed 's/ .* / /g' | sed 's/.\{9\} / /' | sed 's/-/f/g')
+		whiptail --title "Fișiere în directorul curent:" --msgbox "$ls_out" --scrolltext 20 60
 		home
 		#see current files/folders in current directory
 	;;
 
 	5)
-<<<<<<< HEAD
 		dir=$(pwd) #save current directory location to use after extracting info
-		whiptail --title "User Information" --msgbox "$dir \n$initial_dir " 20 50
+		#whiptail --title "User Information" --msgbox "$dir \n$initial_dir " 20 50
 		cd $initial_dir #go to initial location of the script to extract user info from Users.csv
                 etc=$(grep -w "$id" Users.csv)
 		touch temp.txt
@@ -246,12 +240,6 @@ home()
 		home
 
 		return #see user info (uid, username, email)
-=======
-		cd ../..
-                whiptail --title "User Information" --msgbox "User ID: $ident  \n Username: $id \n Email: $emaill " 30 50
-                cd folders/Home-$ident
-                return #see user info (uid, username, email)
->>>>>>> refs/remotes/origin/main
 	;;
 
 	6)	cd
@@ -272,4 +260,5 @@ home()
 
 clear
 initial_dir=$(pwd) #save initial location in the project to access later
+cd $initial_dir
 start_screen
