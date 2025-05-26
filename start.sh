@@ -200,8 +200,12 @@ home()
                 if [ $exit_status -eq 0 ] ; then
                         file_name=$(whiptail --title "Create File" --inputbox "What is the name of the file?" \
                         --nocancel 10 50 3>&1 1>&2 2>&3 | sed 's/ /_/g')
-                        nano $file_name && home || whiptail --title "Error" --msgbox "File not found!" 7 0 3>&1 1>&2 2>&3
-			home
+			if [ -e $file_name ] ; then
+                        	nano $file_name && home
+			else
+				whiptail --title "Error" --msgbox "File not found!" 7 0
+				home
+			fi
 		else
                         folder_name=$(whiptail --title "Create Folder" --inputbox "What is the name of the folder?" \
                         --nocancel 10 50 3>&1 1>&2 2>&3 | sed 's/ /_/g')
@@ -280,15 +284,17 @@ home()
 		dir=$(pwd) #save current directory location to use after extracting info
 		cd $initial_dir/folders/Home-$ident
 		cur=$(pwd)
-		num_files=$(find "$cur" -type f | wc -l &) 
+		num_files=$(find "$cur" -type f | wc -l &)
 		num_files=$(($num_files - 1))
-		num_dir=$(find "$cur" -type d | wc -l &) 
-		sizej=$(du -bs .jrn-$ident | cut -f1 &) 
+		num_dir=$(find "$cur" -type d | wc -l &)
+		sizej=$(du -bs .jrn-$ident | cut -f1 &)
 		size=$(du -hs $cur | cut -f1 &)
 		size_b=$(du -bs $cur | cut -f1 &)
 		size_b=$(($size_b - $sizej ))
 		whiptail --title "User report " --msgbox " Number of files: $num_files \n Number of directories: $num_dir \n Size on disk (including journal): $size \n Size (bytes)(files only): $size_b" 20 50
 		#TODO REPORT
+		touch report$ident.txt
+		printf " Number of files: $num_files \n Number of directories: $num_dir \n Size on disk (including journal): $size \n Size (bytes)(files only): $size_b" > report$ident.txt
 		cd $dir
 		home
 	;;
@@ -334,11 +340,11 @@ home()
 			touch temp.txt
 			temp="temp.txt"
 			while IFS=',' read -r id1 stare username email parola; do
-  			if [ "$id1" = "$ident" ]; then
-   				 echo "$id1, 0,$username,$email,$parola" >> "$temp"
-  			else
- 	   			 echo "$id1,$stare,$username,$email,$parola" >> "$temp"
- 	 		fi
+  				if [ "$id1" = "$ident" ]; then
+   					 echo "$id1, 0,$username,$email,$parola" >> "$temp"
+  				else
+ 	   				 echo "$id1,$stare,$username,$email,$parola" >> "$temp"
+ 	 			fi
 			done < "Users.csv"
 
 			cp  "$temp" "Users.csv"
@@ -353,8 +359,6 @@ home()
 			whiptail --title "Error!" --msgbox "You are not authorised to delete this user!" 30 60
 			home
 		fi
-
-
 	;;
 
 	*)

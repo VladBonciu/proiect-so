@@ -1,0 +1,4 @@
+ Number of files: 6 
+ Number of directories: 2 
+ Size on disk (including journal): 24K 
+ Size (bytes)(files only): 180
