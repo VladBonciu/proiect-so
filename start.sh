@@ -117,9 +117,8 @@ start_screen()
 				cd ../..
 				echo "$id logged in: $time " >> "admin-jrn.txt"
 				cd folders/Home-$ident
-				#if ! grep -q "^$id$" "$active_users_file"; then
     					echo "$id" >> "$active_users_file"
-				#fi
+
 				home
 			else
 				whiptail --title "Log In" --msgbox "Incorrect password." 7 0
@@ -129,6 +128,11 @@ start_screen()
 
 	elif [ $login_option -eq 2 ] ; then
 		email=$(whiptail --title "Sign In 0/4 Completed" --inputbox "Email:" --nocancel 10 50 3>&1 1>&2 2>&3)
+		if grep -qw "$email" "Users.csv" ;then
+                        whiptail --title "Sign In Failed" --msgbox "Another user already has this email adress!" 10 50 
+                        start_screen
+                fi
+
 		username=$(whiptail --title "Sign In 1/4 Completed" --inputbox "Username: " --nocancel 10 50 3>&1 1>&2 2>&3)
 		if grep -qw "$username" "Users.csv" ;then
 			whiptail --title "Sign In Failed" --msgbox "Another user already has this username!" --nocancel 10 30
@@ -155,6 +159,9 @@ start_screen()
 
                         loading
                         clear
+			email_sent=$(./mail.sh $emaill)
+
+                        whiptail --title "Sign Up Email" --msgbox "$email_sent" 7 0
 
                         whiptail --title "Sign Up" --msgbox "Account Created! Your user id is: $ident" 7 0
 			start_screen
@@ -292,9 +299,16 @@ home()
 		size_b=$(du -bs $cur | cut -f1 &)
 		size_b=$(($size_b - $sizej ))
 		whiptail --title "User report " --msgbox " Number of files: $num_files \n Number of directories: $num_dir \n Size on disk (including journal): $size \n Size (bytes)(files only): $size_b" 20 50
-		#TODO REPORT
-		touch report$ident.txt
-		printf " Number of files: $num_files \n Number of directories: $num_dir \n Size on disk (including journal): $size \n Size (bytes)(files only): $size_b" > report$ident.txt
+
+		selection=$(whiptail --title "Open File / Folder" --yesno "Whould you like  to print your report?" \
+                --yes-button "Print" \
+                --no-button "Exit" \
+                --nocancel 10 50 3>&1 1>&2 2>&3)
+                exit_status=$?
+		if [ $exit_status -eq 0 ]; then
+			touch report$ident.txt
+			printf "Last report: \n Number of files: $num_files \n Number of directories: $num_dir \n Size on disk (including journal): $size \n Size (bytes)(files only): $size_b" > report$ident.txt
+		fi
 		cd $dir
 		home
 	;;

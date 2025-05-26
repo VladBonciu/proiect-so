@@ -256,3 +256,13 @@ vlad logged in: 2025-05-26 21:44:12
 vlad logged out: 2025-05-26 21:44:54 
 vlad logged in: 2025-05-26 21:48:33 
 vlad logged out: 2025-05-26 21:49:08 
+cris logged in: 2025-05-26 22:30:30 
+cris logged out: 2025-05-26 22:30:36 
+cris logged in: 2025-05-26 22:38:09 
+cris logged out: 2025-05-26 22:40:24 
+cris logged in: 2025-05-26 22:41:43 
+cris logged out: 2025-05-26 22:42:10 
+cris logged in: 2025-05-26 22:43:16 
+cris logged out: 2025-05-26 22:44:18 
+vasilache logged in: 2025-05-26 22:49:10 
+vasilache logged out: 2025-05-26 22:51:36 

@@ -1,1 +1,0 @@
- Number of files: 5 \n Number of directories: 2 \n Size on disk (including journal): 20K \n Size (bytes)(files only): 59
