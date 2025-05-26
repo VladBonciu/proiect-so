@@ -46,7 +46,7 @@ show_ui()
 create_user()
 {
         uid=$(cat Users.csv | wc -l)
-        printf "$uid, $1, $2, $3\n" >> "Users.csv"
+        printf "$uid, $4, $1, $2, $3\n" >> "Users.csv"
 	echo "User adaugat"
 }
 
@@ -94,10 +94,24 @@ start_screen()
 		id=$(whiptail --inputbox "Enter Username " 10 60 --title "Log In" --nocancel 3>&1 1>&2 2>&3)
 
 		found=$(search_for_user $id)
-
-		if [ -z "$found"] ; then
+		is=$(echo "$found" | cut -d "," -f2)
+		if [ -z "$found" ] || [ $is -eq 0 ]; then
 			whiptail --title "Log In" --msgbox "User not found in database." 7 0
 			start_screen
+		elif [ $is -eq 1 ]; then
+		touch tmp.txt
+		echo $list>tmp.txt
+		error=0
+		 while IFS=',' read -r active ; do
+			if [ "$id" = "$active" ] ; then
+			error=1
+			fi
+			done < "tmp.txt"
+			rm tmp.txt
+			if [ $error -eq 1 ]; then
+			whiptail --title "ERROR" --msgbox "User active on another device" 30 60
+                        start_screen
+			fi
 		else
 			password=$(whiptail --title "Log In" --passwordbox "Enter password:" --nocancel 10 60 3>&1 1>&2 2>&3)
 			clear
@@ -114,6 +128,9 @@ start_screen()
 				cd ../..
 				echo "$id logged in: $time " >> "admin-jrn.txt"
 				cd folders/Home-$ident
+				echo "$list">temporar.txt
+				list="${list:+$list,}$id"
+				export list
 				home
 			else
 				whiptail --title "Log In" --msgbox "Incorrect password." 7 0
@@ -132,8 +149,8 @@ start_screen()
 		if [ "$password" = "$password2" ] ; then
 			#TODO sign up logic
 			encrypted_pass=$(echo "$password" | sha256sum | sed 's/\s.*//g')
-
-			create_user $username $email $encrypted_pass
+			is=1
+			create_user $username $email $encrypted_pass $is
 
 			ident=$(grep -w $username Users.csv | sed 's/,.*//g')
 
@@ -166,6 +183,7 @@ home()
         "5" "See User Information" \
         "6" "Create User Report" \
 	"7" "Change Theme" \
+	"8" "Delete User" \
 	3>&1 1>&2 2>&3)
 	exit_status=$?
 	if [ $exit_status -eq 1 ] ; then
@@ -267,8 +285,13 @@ home()
 
 	6)
 		dir=$(pwd) #save current directory location to use after extracting info
-		cd $initial_dir
-		whiptail --title "Log In Journal" --textbox ".jrn-$ident" 20 50
+		cd $initial_dir/folders/Home-$ident
+		cur=$(pwd)
+		num_files=$(find "$cur" -type f | wc -l)
+		num_dir=$(find "$cur" -type d | wc -l)
+		size=$(du -hs $cur | cut -f1)
+		size_b=$(du -bs $cur | cut -f1)
+		whiptail --title "User report " --msgbox " Number of files: $num_files \n Number of directories: $num_dir \n Size on disk: $size \n Size (bytes): $size_b" 20 50
 		#TODO REPORT
 		cd $dir
 		home
@@ -302,6 +325,39 @@ home()
                 ;;
 
 		esac
+	;;
+
+	8)
+	password=$(whiptail --title "Log In" --passwordbox "Enter password:" --nocancel 10 60 3>&1 1>&2 2>&3)
+                        clear
+                        encrypted_pass=$(echo "$password" | sha256sum | sed 's/\s.*//g')
+                        doc_pass=$(echo $found | sed 's/.*,.//g')
+
+       if [ $doc_pass = $encrypted_pass ] ; then
+	cd $initial_dir
+	touch temp.txt
+	temp="temp.txt"
+	while IFS=',' read -r id1 stare username email parola; do
+  	if [ "$id1" = "$ident" ]; then
+   		 echo "$id1, 0,$username,$email,$parola" >> "$temp"
+  	else
+ 	   	 echo "$id1,$stare,$username,$email,$parola" >> "$temp"
+ 	 fi
+	done < "Users.csv"
+
+	cp  "$temp" "Users.csv"
+	scrie_mare "Loading"
+	loading
+	clear
+	whiptail --title "Success!" --msgbox "User has been removed." 30 60
+	rm temp.txt
+	start_screen
+	else
+
+	whiptail --title "Error!" --msgbox "You are not authorised to delete this user!" 30 60
+	home
+	fi
+
 
 	;;
 
@@ -314,5 +370,4 @@ home()
 
 clear
 initial_dir=$(pwd) #save initial location in the project to access later
-cd $initial_dir
 start_screen
