@@ -99,7 +99,7 @@ start_screen()
 			whiptail --title "Log In" --msgbox "User not found in database." 7 0
 			start_screen
 		elif grep -q "^$id$" "$active_users_file"; then
-			whiptail --title "ERROR" --msgbox "User active on another device" 30 60
+			whiptail --title "ERROR" --msgbox "User active on another device!" 3 0
                         start_screen
 		else
 			password=$(whiptail --title "Log In" --passwordbox "Enter password:" --nocancel 10 60 3>&1 1>&2 2>&3)
@@ -130,6 +130,10 @@ start_screen()
 	elif [ $login_option -eq 2 ] ; then
 		email=$(whiptail --title "Sign In 0/4 Completed" --inputbox "Email:" --nocancel 10 50 3>&1 1>&2 2>&3)
 		username=$(whiptail --title "Sign In 1/4 Completed" --inputbox "Username: " --nocancel 10 50 3>&1 1>&2 2>&3)
+		if grep -qw "$username" "Users.csv" ;then
+			whiptail --title "Sign In Failed" --msgbox "Another user already has this username!" --nocancel 10 30
+			start_screen
+		fi
 		password=$(whiptail --title "Sign in 2/4 Completed" --passwordbox "Password: " --nocancel 10 50 3>&1 1>&2 2>&3)
 		password2=$(whiptail --title "Sign In 3/4 Completed" --passwordbox "Confirm password: " --nocancel 10 50 3>&1 1>&2 2>&3)
 		emaill=$email
@@ -240,7 +244,7 @@ home()
 			home
                 else
                         folder_name=$(whiptail --title "Delete Folder" --inputbox "What is the name of the folder?" \
-                        --nocancel 10 50 3>&1 1>&2 2>&3 | sed 's/ /_/g')
+	                        --nocancel 10 50 3>&1 1>&2 2>&3 | sed 's/ /_/g')
                         rm $folder_name && home || whiptail --title "Error" --msgbox "Folder not found!" 7 0 3>&1 1>&2 2>&3
                         home
                 fi
@@ -248,7 +252,7 @@ home()
 	;;
 
 	4)	#!!!!de schimbat fisierele din al doilea cd dupa ce se face directoru cu proiectu
-		ls_out=$(ls -l | sed 's/ .* / /g' | sed 's/.\{9\} / /' | sed 's/-/f/g')
+		ls_out=$(ls -l | sed 's/ .* / /g' | sed 's/.\{9\} / /' | sed 's/-/f/g' | sed 1d)
 		whiptail --title "Files in current directory:" --msgbox "$ls_out" --scrolltext 20 60
 		home
 		#see current files/folders in current directory
@@ -276,11 +280,14 @@ home()
 		dir=$(pwd) #save current directory location to use after extracting info
 		cd $initial_dir/folders/Home-$ident
 		cur=$(pwd)
-		num_files=$(find "$cur" -type f | wc -l)
-		num_dir=$(find "$cur" -type d | wc -l)
-		size=$(du -hs $cur | cut -f1)
-		size_b=$(du -bs $cur | cut -f1)
-		whiptail --title "User report " --msgbox " Number of files: $num_files \n Number of directories: $num_dir \n Size on disk: $size \n Size (bytes): $size_b" 20 50
+		num_files=$(find "$cur" -type f | wc -l &) 
+		num_files=$(($num_files - 1))
+		num_dir=$(find "$cur" -type d | wc -l &) 
+		sizej=$(du -bs .jrn-$ident | cut -f1 &) 
+		size=$(du -hs $cur | cut -f1 &)
+		size_b=$(du -bs $cur | cut -f1 &)
+		size_b=$(($size_b - $sizej ))
+		whiptail --title "User report " --msgbox " Number of files: $num_files \n Number of directories: $num_dir \n Size on disk (including journal): $size \n Size (bytes)(files only): $size_b" 20 50
 		#TODO REPORT
 		cd $dir
 		home
@@ -359,6 +366,6 @@ home()
 
 clear
 initial_dir=$(pwd) #save initial location in the project to access late
-active_users_file="$initial_dir/active_users.txt"
+active_users_file="$initial_dir/active-users.txt"
 touch "$active_users_file"
 start_screen
