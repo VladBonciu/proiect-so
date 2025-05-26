@@ -98,20 +98,20 @@ start_screen()
 		if [ -z "$found" ] || [ $is -eq 0 ]; then
 			whiptail --title "Log In" --msgbox "User not found in database." 7 0
 			start_screen
-		elif [ $is -eq 1 ]; then
-		touch tmp.txt
-		echo $list>tmp.txt
-		error=0
-		 while IFS=',' read -r active ; do
-			if [ "$id" = "$active" ] ; then
-			error=1
-			fi
-			done < "tmp.txt"
-			rm tmp.txt
-			if [ $error -eq 1 ]; then
-			whiptail --title "ERROR" --msgbox "User active on another device" 30 60
-                        start_screen
-			fi
+		#elif [ $is -eq 1 ]; then
+		#touch tmp.txt
+		#echo $list>tmp.txt
+		#error=0
+		#while IFS=',' read -r active ; do
+			#if [ "$id" = "$active" ] ; then
+			#error=1
+			#fi
+			#done < "tmp.txt"
+			#rm tmp.txt
+			#if [ $error -eq 1 ]; then
+			#whiptail --title "ERROR" --msgbox "User active on another device" 30 60
+                        #start_screen
+			#fi
 		else
 			password=$(whiptail --title "Log In" --passwordbox "Enter password:" --nocancel 10 60 3>&1 1>&2 2>&3)
 			clear
@@ -128,9 +128,9 @@ start_screen()
 				cd ../..
 				echo "$id logged in: $time " >> "admin-jrn.txt"
 				cd folders/Home-$ident
-				echo "$list">temporar.txt
-				list="${list:+$list,}$id"
-				export list
+				#echo "$list">temporar.txt
+				#list="${list:+$list,}$id"
+				#export list
 				home
 			else
 				whiptail --title "Log In" --msgbox "Incorrect password." 7 0
@@ -328,35 +328,35 @@ home()
 	;;
 
 	8)
-	password=$(whiptail --title "Log In" --passwordbox "Enter password:" --nocancel 10 60 3>&1 1>&2 2>&3)
-                        clear
-                        encrypted_pass=$(echo "$password" | sha256sum | sed 's/\s.*//g')
-                        doc_pass=$(echo $found | sed 's/.*,.//g')
+		password=$(whiptail --title "Log In" --passwordbox "Enter password:" --nocancel 10 60 3>&1 1>&2 2>&3)
+        	                clear
+                	        encrypted_pass=$(echo "$password" | sha256sum | sed 's/\s.*//g')
+                        	doc_pass=$(echo $found | sed 's/.*,.//g')
 
-       if [ $doc_pass = $encrypted_pass ] ; then
-	cd $initial_dir
-	touch temp.txt
-	temp="temp.txt"
-	while IFS=',' read -r id1 stare username email parola; do
-  	if [ "$id1" = "$ident" ]; then
-   		 echo "$id1, 0,$username,$email,$parola" >> "$temp"
-  	else
- 	   	 echo "$id1,$stare,$username,$email,$parola" >> "$temp"
- 	 fi
-	done < "Users.csv"
+       		if [ $doc_pass = $encrypted_pass ] ; then
+			cd $initial_dir
+			touch temp.txt
+			temp="temp.txt"
+			while IFS=',' read -r id1 stare username email parola; do
+  			if [ "$id1" = "$ident" ]; then
+   				 echo "$id1, 0,$username,$email,$parola" >> "$temp"
+  			else
+ 	   			 echo "$id1,$stare,$username,$email,$parola" >> "$temp"
+ 	 		fi
+			done < "Users.csv"
 
-	cp  "$temp" "Users.csv"
-	scrie_mare "Loading"
-	loading
-	clear
-	whiptail --title "Success!" --msgbox "User has been removed." 30 60
-	rm temp.txt
-	start_screen
-	else
+			cp  "$temp" "Users.csv"
+			scrie_mare "Loading"
+			loading
+			clear
+			whiptail --title "Success!" --msgbox "User has been removed." 30 60
+			rm temp.txt
+			start_screen
+		else
 
-	whiptail --title "Error!" --msgbox "You are not authorised to delete this user!" 30 60
-	home
-	fi
+			whiptail --title "Error!" --msgbox "You are not authorised to delete this user!" 30 60
+			home
+		fi
 
 
 	;;
@@ -369,5 +369,6 @@ home()
 }
 
 clear
-initial_dir=$(pwd) #save initial location in the project to access later
+initial_dir=$(pwd) #save initial location in the project to access late
+active_user_file="$initial_dir/active_users.txt"
 start_screen
