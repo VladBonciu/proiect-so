@@ -182,8 +182,9 @@ home()
         "4" "List Items in Directory" \
         "5" "See User Information" \
         "6" "Create User Report" \
-	"7" "Change Theme" \
-	"8" "Delete User" \
+	"7" "See User Journal"\
+	"8" "Change Theme" \
+	"9" "Delete User" \
 	3>&1 1>&2 2>&3)
 	exit_status=$?
 	if [ $exit_status -eq 1 ] ; then
@@ -312,8 +313,15 @@ home()
 		cd $dir
 		home
 	;;
-
 	7)
+	cd $initial_dir/folders/Home-$ident
+	temp=$(<.jrn-$ident)
+	whiptail --title "User Journal:" --msgbox "$temp" --scrolltext 20 60
+
+
+
+	;;
+	8)
 		theme_option=$(whiptail --title "Theme" --menu "Select a theme:"  --nocancel --notags 30 30 10 \
         	"1" "Classic" \
 	        "2" "Old School" \
@@ -343,7 +351,7 @@ home()
 		esac
 	;;
 
-	8)
+	9)
 		password=$(whiptail --title "Log In" --passwordbox "Enter password:" --nocancel 10 60 3>&1 1>&2 2>&3)
         	                clear
                 	        encrypted_pass=$(echo "$password" | sha256sum | sed 's/\s.*//g')
