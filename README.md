@@ -7,7 +7,8 @@ A small coding project we made to enhance our coding skills in _**bash** with sh
 You can run the program with this command on a bash instance: _(on a linux or mac system)_
 ```
 git clone https://github.com/VladBonciu/proiect-so.git
-
+cd proiect-so
+./start.sh
 ```
 
 ## Credits
