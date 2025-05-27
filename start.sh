@@ -314,10 +314,10 @@ home()
 		home
 	;;
 	7)
-	cd $initial_dir/folders/Home-$ident
-	temp=$(<.jrn-$ident)
-	whiptail --title "User Journal:" --msgbox "$temp" --scrolltext 20 60
-
+		cd $initial_dir/folders/Home-$ident
+		temp=$(<.jrn-$ident)
+		whiptail --title "User Journal:" --msgbox "$temp" --scrolltext 20 60
+		home
 
 
 	;;
